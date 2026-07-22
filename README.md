@@ -35,13 +35,59 @@
 
 
 ### 1. Servidor funcionando
-**Descripción:** Vamos a comprobar que la API responde.
+**Descripción:** Se verifica que la API Spring Boot esté levantada correctamente y pueda recibir solicitudes HTTP.
+
 ![Servidor](./assets/01-Api-responde.png)
 
 ### 2. Backend levantado
-**Descripción:** Después, vamos a comprobar la respuesta exacta del health. Confirma que tu backend está levantado y saludable.
-![Health(./assets/02-Backend.png)
+**Descripción:** Se comprueba el estado de salud del backend mediante el endpoint de Actuator. Una respuesta con estado `UP` confirma que la aplicación inició correctamente.
+
+![Health](./assets/02-Backend.png)
 
 ### 3. Comprobar Swagger
-**Descripción:** Spring Security está protegiendo la ruta `/swagger-ui.html`. Spring Security activó su configuración por defecto porque todavía no está permitiendo Swagger públicamente.
+**Descripción:** Se verifica el acceso a la documentación de la API mediante Swagger UI. Actualmente la ruta está protegida por Spring Security mientras se termina la configuración de autenticación JWT.
+
 ![Swagger](./assets/03-Swa.png)
+
+### 4. Verificación de base de datos PostgreSQL
+Se accede al contenedor PostgreSQL mediante Docker para comprobar la existencia de la base de datos y consultar las tablas creadas por los scripts iniciales.
+
+![BaseDatos](./assets/04-DB.png)
+
+Comando utilizado:
+
+```bash
+docker exec -it postgres-proyecto psql -U ups -d academic_events_db
+```
+Comandos utilizados dentro de PostgreSQL:
+```
+-- Mostrar las tablas existentes
+\dt
+
+-- Revisar estructura de usuarios
+\d users
+
+-- Revisar estructura de roles
+\d roles
+
+-- Revisar tabla intermedia usuario-rol
+\d user_roles
+```
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
