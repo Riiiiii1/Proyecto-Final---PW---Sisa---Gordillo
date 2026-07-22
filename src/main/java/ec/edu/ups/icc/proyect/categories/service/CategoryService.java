@@ -4,10 +4,12 @@ import ec.edu.ups.icc.proyect.categories.dto.CategoryResponseDTO;
 import ec.edu.ups.icc.proyect.categories.dto.CreateCategoryDTO;
 import ec.edu.ups.icc.proyect.categories.dto.UpdateCategoryDTO;
 import ec.edu.ups.icc.proyect.categories.dto.UpdateCategoryStatusDTO;
+import ec.edu.ups.icc.proyect.core.dto.PaginationDTO;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 
 public interface CategoryService {
+
 
     CategoryResponseDTO create(CreateCategoryDTO dto);
 
@@ -17,5 +19,6 @@ public interface CategoryService {
 
     CategoryResponseDTO findById(Long id);
 
-    Page<CategoryResponseDTO> findAll(String search, Boolean active, Pageable pageable);
+    Page<CategoryResponseDTO> findAll(String search, Boolean active, PaginationDTO pagination);
+
 }
