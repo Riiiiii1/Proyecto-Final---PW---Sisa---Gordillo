@@ -16,7 +16,7 @@ public interface CategoryRepository extends JpaRepository<CategoryEntity, Long> 
     boolean existsByNameIgnoreCase(String name);
 
     @Query("SELECT c FROM CategoryEntity c WHERE " +
-            "(:search IS NULL OR LOWER(c.name) LIKE LOWER(CONCAT('%', :search, '%'))) AND " +
+            "(:search IS NULL OR LOWER(c.name) LIKE LOWER(CONCAT('%', CAST(:search AS string), '%'))) AND " +
             "(:active IS NULL OR c.active = :active)")
     Page<CategoryEntity> search(String search, Boolean active, Pageable pageable);
 }

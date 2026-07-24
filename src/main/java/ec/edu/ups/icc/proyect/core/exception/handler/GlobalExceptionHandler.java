@@ -3,6 +3,8 @@ import ec.edu.ups.icc.proyect.core.exception.base.ApplicationException;
 import ec.edu.ups.icc.proyect.core.exception.domain.TooManyRequestsException;
 import ec.edu.ups.icc.proyect.core.exception.response.ErrorResponse;
 import jakarta.servlet.http.HttpServletRequest;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -41,7 +43,26 @@ public class GlobalExceptionHandler {
         return builder.body(response);
     }
 
+    private static final Logger logger = LoggerFactory.getLogger(GlobalExceptionHandler.class);
 
+    @ExceptionHandler(Exception.class)
+    public ResponseEntity<ErrorResponse> handleUnexpectedException(
+            Exception ex,
+            HttpServletRequest request
+    ) {
+        logger.error("Error inesperado en {}: ", request.getRequestURI(), ex);
+
+        ErrorResponse response = new ErrorResponse(
+                HttpStatus.INTERNAL_SERVER_ERROR,
+                "INTERNAL_ERROR",
+                "Error interno del servidor",
+                request.getRequestURI()
+        );
+
+        return ResponseEntity
+                .status(HttpStatus.INTERNAL_SERVER_ERROR)
+                .body(response);
+    }
     @ExceptionHandler(MethodArgumentNotValidException.class)
     public ResponseEntity<ErrorResponse> handleValidationException(
             MethodArgumentNotValidException ex,
@@ -67,22 +88,6 @@ public class GlobalExceptionHandler {
     }
 
 
-    @ExceptionHandler(Exception.class)
-    public ResponseEntity<ErrorResponse> handleUnexpectedException(
-            Exception ex,
-            HttpServletRequest request
-    ) {
-        ErrorResponse response = new ErrorResponse(
-                HttpStatus.INTERNAL_SERVER_ERROR,
-                "INTERNAL_ERROR",
-                "Error interno del servidor",
-                request.getRequestURI()
-        );
-
-        return ResponseEntity
-                .status(HttpStatus.INTERNAL_SERVER_ERROR)
-                .body(response);
-    }
 
 
     @ExceptionHandler(BindException.class)
