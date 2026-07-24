@@ -1,4 +1,13 @@
 package ec.edu.ups.icc.proyect.events.service;
 
-public class EventService {
+import ec.edu.ups.icc.proyect.events.dto.EventResponseDTO;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+
+public interface EventService {
+
+    EventResponseDTO getEventById(Long id);
+
+    Page<EventResponseDTO> getAllEvents(Pageable pageable);
+
 }
