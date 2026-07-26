@@ -2,35 +2,49 @@ package ec.edu.ups.icc.proyect.events.mapper;
 
 import ec.edu.ups.icc.proyect.events.dto.EventResponseDTO;
 import ec.edu.ups.icc.proyect.events.entity.EventEntity;
-import org.springframework.stereotype.Component;
 
-@Component
 public class EventMapper {
-
-    public EventResponseDTO toResponseDTO(EventEntity entity) {
+    public static EventResponseDTO toResponse(EventEntity entity) {
         if (entity == null) {
             return null;
         }
 
-        return EventResponseDTO.builder()
-                .id(entity.getId())
-                .title(entity.getTitle())
-                .description(entity.getDescription())
-                .modality(entity.getModality())
-                .location(entity.getLocation())
-                .virtualUrl(entity.getVirtualUrl())
-                .capacity(entity.getCapacity())
-                .availableCapacity(entity.getAvailableCapacity())
-                .registrationStartAt(entity.getRegistrationStartAt())
-                .registrationEndAt(entity.getRegistrationEndAt())
-                .startAt(entity.getStartAt())
-                .endAt(entity.getEndAt())
-                .status(entity.getStatus())
-                .categoryId(entity.getCategory() != null ? entity.getCategory().getId() : null)
-                .categoryName(entity.getCategory() != null ? entity.getCategory().getName() : null)
-                .organizerId(entity.getOrganizer() != null ? entity.getOrganizer().getId() : null)
-                .organizerName(entity.getOrganizer() != null ?
-                        entity.getOrganizer().getFirstName() + " " + entity.getOrganizer().getLastName() : null)
-                .build();
+        EventResponseDTO dto = new EventResponseDTO();
+        dto.setId(entity.getId());
+        dto.setTitle(entity.getTitle());
+        dto.setDescription(entity.getDescription());
+        dto.setModality(entity.getModality());
+        dto.setLocation(entity.getLocation());
+        dto.setVirtualUrl(entity.getVirtualUrl());
+        dto.setCapacity(entity.getCapacity());
+        dto.setAvailableCapacity(entity.getAvailableCapacity());
+        dto.setRegistrationStartAt(entity.getRegistrationStartAt());
+        dto.setRegistrationEndAt(entity.getRegistrationEndAt());
+        dto.setStartAt(entity.getStartAt());
+        dto.setEndAt(entity.getEndAt());
+        dto.setStatus(entity.getStatus());
+        dto.setCreatedAt(entity.getCreatedAt());
+        dto.setUpdatedAt(entity.getUpdatedAt());
+
+        if (entity.getOrganizer() != null) {
+            EventResponseDTO.UserSummaryDto organizerDto = new EventResponseDTO.UserSummaryDto();
+            organizerDto.setId(entity.getOrganizer().getId());
+            organizerDto.setFirstName(entity.getOrganizer().getFirstName());
+            organizerDto.setLastName(entity.getOrganizer().getLastName());
+            organizerDto.setEmail(entity.getOrganizer().getEmail());
+
+            dto.setOrganizer(organizerDto);
+        }
+
+
+        if (entity.getCategory() != null) {
+            EventResponseDTO.CategorySummaryDto categoryDto = new EventResponseDTO.CategorySummaryDto();
+            categoryDto.setId(entity.getCategory().getId());
+            categoryDto.setName(entity.getCategory().getName());
+
+            dto.setCategory(categoryDto);
+        }
+
+        return dto;
     }
 }

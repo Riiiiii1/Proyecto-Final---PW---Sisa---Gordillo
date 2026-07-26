@@ -73,8 +73,10 @@ Comandos utilizados dentro de PostgreSQL:
 -- Revisar tabla intermedia usuario-rol
 \d user_roles
 ```
+### 5. Verificación de Swagger UI
+**Descripción:** Se levanta el servicio Spring Boot y se accede a la interfaz de Swagger UI para comprobar que la documentación `OpenAPI` se genera correctamente y que los endpoints de los distintos controladores (Events, Categories, etc.) están correctamente expuestos.
 
-
+![SwaggerUI](./assets/05-Swagger.png)
 
 
 
