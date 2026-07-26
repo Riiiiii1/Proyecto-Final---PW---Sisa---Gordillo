@@ -101,7 +101,19 @@ Descripción: Se implementaron pruebas unitarias completas con JUnit 5 y Mockito
 
 Resultado: 20 pruebas unitarias ejecutadas de manera exitosa (100% de éxito).
 
+### 10. Rate Limiting con Redis Cloud
 
+**Descripción:** Se implementó un límite de **5 intentos de inicio de sesión por minuto** usando Redis Cloud para guardar temporalmente el contador de solicitudes por IP. Si se supera el límite, la API responde con **`429 Too Many Requests`**.
+
+Se enviaron **6 solicitudes de login** en menos de un minuto. Las primeras **5** respondieron correctamente y la **6.ª** fue bloqueada con el código **`429 Too Many Requests`**.
+
+![RateLimitExceeded](./assets/10-RateLimit429.png)
+
+## 11. Verificación en Redis
+
+**Descripción:** Se comprobó en `RedisInsight` que la clave `rate-limit:login:<ip>` se crea correctamente y se elimina automáticamente al finalizar el tiempo configurado.
+
+![RedisRateLimitKey](./assets/11-RedisKeys.png)
 
 
 
