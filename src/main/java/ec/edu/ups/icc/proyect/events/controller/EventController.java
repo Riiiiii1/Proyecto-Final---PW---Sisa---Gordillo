@@ -5,6 +5,7 @@ import ec.edu.ups.icc.proyect.events.dto.CreateEventDTO;
 import ec.edu.ups.icc.proyect.events.dto.EventFilterDTO;
 import ec.edu.ups.icc.proyect.events.dto.EventResponseDTO;
 import ec.edu.ups.icc.proyect.events.dto.UpdateEventDTO;
+import ec.edu.ups.icc.proyect.events.dto.UpdateEventStatusDTO;
 import ec.edu.ups.icc.proyect.events.service.EventService;
 import ec.edu.ups.icc.proyect.security.service.UserDetailsImpl;
 import io.swagger.v3.oas.annotations.Operation;
@@ -22,7 +23,7 @@ import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
-@RequestMapping("/api/events")
+@RequestMapping("/events")
 @Tag(name = "Events", description = "API para la gestión de eventos académicos")
 @SecurityRequirement(name = "bearerAuth")
 public class EventController {
@@ -52,8 +53,10 @@ public class EventController {
     @Operation(summary = "Actualizar un evento", description = "Permite a un ADMIN o al ORGANIZER propietario modificar un evento existente.")
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "Evento actualizado exitosamente"),
+            @ApiResponse(responseCode = "400", description = "Errores de validación o reglas de negocio"),
             @ApiResponse(responseCode = "403", description = "Acceso denegado (no es propietario)"),
-            @ApiResponse(responseCode = "404", description = "Evento no encontrado")
+            @ApiResponse(responseCode = "404", description = "Evento no encontrado"),
+            @ApiResponse(responseCode = "409", description = "Conflicto (ej. título duplicado)")
     })
     @PutMapping("/{id}")
     @PreAuthorize("hasAnyRole('ADMIN', 'ORGANIZER')")
@@ -66,10 +69,29 @@ public class EventController {
         return ResponseEntity.ok(updated);
     }
 
+    @Operation(summary = "Cambiar el estado de un evento", description = "Permite a un ADMIN o al ORGANIZER propietario transicionar el estado del evento (DRAFT → PUBLISHED → FINISHED/CANCELLED).")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "Estado actualizado exitosamente"),
+            @ApiResponse(responseCode = "400", description = "Transición de estado no permitida"),
+            @ApiResponse(responseCode = "403", description = "Acceso denegado (no es propietario)"),
+            @ApiResponse(responseCode = "404", description = "Evento no encontrado")
+    })
+    @PatchMapping("/{id}/status")
+    @PreAuthorize("hasAnyRole('ADMIN', 'ORGANIZER')")
+    public ResponseEntity<EventResponseDTO> updateStatus(
+            @PathVariable Long id,
+            @Valid @RequestBody UpdateEventStatusDTO updateEventStatusDTO,
+            @Parameter(hidden = true) @AuthenticationPrincipal UserDetailsImpl currentUser) {
+
+        EventResponseDTO updated = eventService.updateStatus(id, updateEventStatusDTO, currentUser);
+        return ResponseEntity.ok(updated);
+    }
+
     @Operation(summary = "Eliminar un evento (lógico)", description = "Permite a un ADMIN o al ORGANIZER propietario eliminar un evento en estado DRAFT o CANCELLED.")
     @ApiResponses(value = {
             @ApiResponse(responseCode = "204", description = "Evento eliminado exitosamente"),
             @ApiResponse(responseCode = "403", description = "Acceso denegado"),
+            @ApiResponse(responseCode = "404", description = "Evento no encontrado"),
             @ApiResponse(responseCode = "409", description = "El evento ya está publicado o tiene inscripciones")
     })
     @DeleteMapping("/{id}")
@@ -83,14 +105,20 @@ public class EventController {
     }
 
     @Operation(summary = "Obtener un evento por ID", description = "Consulta los detalles de un evento específico.")
-    @ApiResponse(responseCode = "200", description = "Evento encontrado")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "Evento encontrado"),
+            @ApiResponse(responseCode = "404", description = "Evento no encontrado")
+    })
     @GetMapping("/{id}")
     public ResponseEntity<EventResponseDTO> findById(@PathVariable Long id) {
         return ResponseEntity.ok(eventService.findById(id));
     }
 
     @Operation(summary = "Listar eventos (Paginado)", description = "Devuelve una lista paginada de eventos aplicando filtros dinámicos.")
-    @ApiResponse(responseCode = "200", description = "Lista de eventos recuperada exitosamente")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "Lista de eventos recuperada exitosamente"),
+            @ApiResponse(responseCode = "400", description = "Parámetros de paginación inválidos")
+    })
     @GetMapping("/page")
     public ResponseEntity<Page<EventResponseDTO>> findAllPage(
             @ModelAttribute EventFilterDTO filter,

@@ -78,15 +78,28 @@ Comandos utilizados dentro de PostgreSQL:
 
 ![SwaggerUI](./assets/05-Swagger.png)
 
+### 6. Autenticación y generación de token JWT
+**Descripción:** Se realiza una petición `POST` al endpoint `/api/auth/login` enviando las credenciales de un usuario administrador registrado en la base de datos. El servicio valida el correo y la contraseña contra el hash almacenado (BCrypt), y en caso de éxito genera un `accessToken` y un `refreshToken` firmados con JWT (HS256), los cuales se utilizarán para autenticar las siguientes peticiones a los endpoints protegidos.
+
+![Login](./assets/06-Token.png)
+
+### 7. Creación de un evento autenticado
+**Descripción:** Utilizando el `accessToken` obtenido en el paso anterior como *Bearer Token*, se realiza una petición `POST` al endpoint `/api/events` con los datos de un nuevo evento académico. Gracias a la anotación `@PreAuthorize("hasAnyRole('ADMIN', 'ORGANIZER')")`, solo un usuario autenticado con el rol correspondiente puede crear el recurso. La API responde con estado `201 Created` y el evento recién registrado.
+
+![CrearEvento](assets/07-Creacion-Evento.png)
+
+### 8. Pruebas unitarias del módulo de Eventos
+**Descripción:** Se implementaron pruebas unitarias con JUnit 5 y Mockito para `EventServiceImpl`, cubriendo los casos de creación, actualización, eliminación lógica y consulta de eventos. Se validan tanto los flujos exitosos como las reglas de negocio (título duplicado, modalidad inválida, fechas inconsistentes, ownership de organizador vs administrador, y estados que impiden eliminación).
+
+![TestsEvents](./assets/08-TestsEvents.png)
 
 
+### 9.Actualizacion Pruebas unitarias del módulo de Eventos
+Descripción: Se implementaron pruebas unitarias completas con JUnit 5 y Mockito para EventServiceImpl, cubriendo los casos de creación, actualización, cambio de estado (updateStatus), eliminación lógica y consulta de eventos. Se validan tanto los flujos exitosos como las reglas de negocio (título duplicado, modalidad inválida, fechas inconsistentes, transiciones de estado permitidas, y ownership de organizador frente a administrador).
 
+![Tests20Events](./assets/09-Actualizacion.png)
 
-
-
-
-
-
+Resultado: 20 pruebas unitarias ejecutadas de manera exitosa (100% de éxito).
 
 
 

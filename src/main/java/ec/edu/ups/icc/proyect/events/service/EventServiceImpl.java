@@ -10,6 +10,7 @@ import ec.edu.ups.icc.proyect.events.dto.CreateEventDTO;
 import ec.edu.ups.icc.proyect.events.dto.EventFilterDTO;
 import ec.edu.ups.icc.proyect.events.dto.EventResponseDTO;
 import ec.edu.ups.icc.proyect.events.dto.UpdateEventDTO;
+import ec.edu.ups.icc.proyect.events.dto.UpdateEventStatusDTO;
 import ec.edu.ups.icc.proyect.events.entity.EventEntity;
 import ec.edu.ups.icc.proyect.events.enums.EventModality;
 import ec.edu.ups.icc.proyect.events.enums.EventStatus;
@@ -22,7 +23,6 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
-import org.springframework.data.domain.Slice;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -46,7 +46,10 @@ public class EventServiceImpl implements EventService {
     @Transactional
     public EventResponseDTO create(CreateEventDTO dto, UserDetailsImpl currentUser) {
         validateDates(dto.getRegistrationStartAt(), dto.getRegistrationEndAt(), dto.getStartAt(), dto.getEndAt());
-        validateModality(dto.getModality(), dto.getLocation(), dto.getVirtualUrl());
+
+        String location = normalizeBlankToNull(dto.getLocation());
+        String virtualUrl = normalizeBlankToNull(dto.getVirtualUrl());
+        validateModality(dto.getModality(), location, virtualUrl);
 
         if (eventRepository.findByTitleIgnoreCaseAndDeletedFalse(dto.getTitle().trim()).isPresent()) {
             throw new ConflictException("Ya existe un evento activo con ese título");
@@ -59,8 +62,8 @@ public class EventServiceImpl implements EventService {
         event.setTitle(dto.getTitle().trim());
         event.setDescription(dto.getDescription().trim());
         event.setModality(dto.getModality());
-        event.setLocation(dto.getLocation());
-        event.setVirtualUrl(dto.getVirtualUrl());
+        event.setLocation(location);
+        event.setVirtualUrl(virtualUrl);
         event.setCapacity(dto.getCapacity());
         event.setAvailableCapacity(dto.getCapacity());
         event.setRegistrationStartAt(dto.getRegistrationStartAt());
@@ -83,7 +86,10 @@ public class EventServiceImpl implements EventService {
         validateOwnership(event, currentUser);
 
         validateDates(dto.getRegistrationStartAt(), dto.getRegistrationEndAt(), dto.getStartAt(), dto.getEndAt());
-        validateModality(dto.getModality(), dto.getLocation(), dto.getVirtualUrl());
+
+        String location = normalizeBlankToNull(dto.getLocation());
+        String virtualUrl = normalizeBlankToNull(dto.getVirtualUrl());
+        validateModality(dto.getModality(), location, virtualUrl);
 
         eventRepository.findByTitleIgnoreCaseAndDeletedFalse(dto.getTitle().trim())
                 .filter(existing -> !existing.getId().equals(id))
@@ -96,8 +102,8 @@ public class EventServiceImpl implements EventService {
         event.setTitle(dto.getTitle().trim());
         event.setDescription(dto.getDescription().trim());
         event.setModality(dto.getModality());
-        event.setLocation(dto.getLocation());
-        event.setVirtualUrl(dto.getVirtualUrl());
+        event.setLocation(location);
+        event.setVirtualUrl(virtualUrl);
 
         int capacityDifference = dto.getCapacity() - event.getCapacity();
         event.setCapacity(dto.getCapacity());
@@ -116,6 +122,20 @@ public class EventServiceImpl implements EventService {
 
     @Override
     @Transactional
+    public EventResponseDTO updateStatus(Long id, UpdateEventStatusDTO dto, UserDetailsImpl currentUser) {
+        EventEntity event = findActiveEventOrThrow(id);
+
+        validateOwnership(event, currentUser);
+        validateStatusTransition(event.getStatus(), dto.getStatus());
+
+        event.setStatus(dto.getStatus());
+
+        EventEntity updatedEvent = eventRepository.save(event);
+        return EventMapper.toResponse(updatedEvent);
+    }
+
+    @Override
+    @Transactional
     public void delete(Long id, UserDetailsImpl currentUser) {
         EventEntity event = findActiveEventOrThrow(id);
 
@@ -124,6 +144,7 @@ public class EventServiceImpl implements EventService {
         if (event.getStatus() != EventStatus.DRAFT && event.getStatus() != EventStatus.CANCELLED) {
             throw new ConflictException("No se puede eliminar un evento que ya ha sido publicado o finalizado");
         }
+
 
         event.setDeleted(true);
         eventRepository.save(event);
@@ -142,16 +163,6 @@ public class EventServiceImpl implements EventService {
         String titleFilter = (filter.getTitle() != null && !filter.getTitle().isBlank()) ? filter.getTitle().trim() : null;
 
         return eventRepository.findPageWithFilters(titleFilter, filter.getCategoryId(), filter.getStatus(), pageable)
-                .map(EventMapper::toResponse);
-    }
-
-    @Override
-    @Transactional(readOnly = true)
-    public Slice<EventResponseDTO> findAllSlice(EventFilterDTO filter, PaginationDTO pagination) {
-        Pageable pageable = createPageable(pagination);
-        String titleFilter = (filter.getTitle() != null && !filter.getTitle().isBlank()) ? filter.getTitle().trim() : null;
-
-        return eventRepository.findSliceWithFilters(titleFilter, filter.getCategoryId(), filter.getStatus(), pageable)
                 .map(EventMapper::toResponse);
     }
 
@@ -206,18 +217,39 @@ public class EventServiceImpl implements EventService {
 
     private void validateModality(EventModality modality, String location, String virtualUrl) {
         if (modality == EventModality.PRESENTIAL) {
-            if (location == null || location.isBlank() || virtualUrl != null && !virtualUrl.isBlank()) {
+            if (location == null || virtualUrl != null) {
                 throw new BadRequestException("Un evento PRESENTIAL debe tener 'location' y NO debe tener 'virtualUrl'");
             }
         } else if (modality == EventModality.VIRTUAL) {
-            if (virtualUrl == null || virtualUrl.isBlank() || location != null && !location.isBlank()) {
+            if (virtualUrl == null || location != null) {
                 throw new BadRequestException("Un evento VIRTUAL debe tener 'virtualUrl' y NO debe tener 'location'");
             }
         } else if (modality == EventModality.HYBRID) {
-            if (location == null || location.isBlank() || virtualUrl == null || virtualUrl.isBlank()) {
+            if (location == null || virtualUrl == null) {
                 throw new BadRequestException("Un evento HYBRID requiere especificar tanto 'location' como 'virtualUrl'");
             }
         }
+    }
+
+    private void validateStatusTransition(EventStatus current, EventStatus target) {
+        if (current == target) {
+            throw new BadRequestException("El evento ya se encuentra en el estado '" + target + "'");
+        }
+
+        boolean isValidTransition = switch (current) {
+            case DRAFT -> target == EventStatus.PUBLISHED || target == EventStatus.CANCELLED;
+            case PUBLISHED -> target == EventStatus.FINISHED || target == EventStatus.CANCELLED;
+            case FINISHED, CANCELLED -> false;
+        };
+
+        if (!isValidTransition) {
+            throw new BadRequestException(
+                    "Transición de estado no permitida: no se puede pasar de '" + current + "' a '" + target + "'");
+        }
+    }
+
+    private String normalizeBlankToNull(String value) {
+        return (value == null || value.isBlank()) ? null : value;
     }
 
     private Pageable createPageable(PaginationDTO pagination) {
