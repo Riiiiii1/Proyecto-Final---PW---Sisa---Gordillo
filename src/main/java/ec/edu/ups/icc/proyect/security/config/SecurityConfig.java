@@ -1,8 +1,14 @@
-
 package ec.edu.ups.icc.proyect.security.config;
+
 import ec.edu.ups.icc.proyect.security.filter.JwtAuthenticationEntryPoint;
 import ec.edu.ups.icc.proyect.security.filter.JwtAuthenticationFilter;
+import ec.edu.ups.icc.proyect.security.ratelimit.RateLimitFilter;
 import ec.edu.ups.icc.proyect.security.service.UserDetailsServiceImpl;
+import io.swagger.v3.oas.annotations.OpenAPIDefinition;
+import io.swagger.v3.oas.annotations.enums.SecuritySchemeType;
+import io.swagger.v3.oas.annotations.info.Info;
+import io.swagger.v3.oas.annotations.security.SecurityRequirement;
+import io.swagger.v3.oas.annotations.security.SecurityScheme;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.authentication.AuthenticationManager;
@@ -21,18 +27,31 @@ import org.springframework.security.web.authentication.UsernamePasswordAuthentic
 @Configuration
 @EnableWebSecurity
 @EnableMethodSecurity(prePostEnabled = true)
+@OpenAPIDefinition(
+        info = @Info(title = "API de Proyecto Final", version = "1.0"),
+        security = @SecurityRequirement(name = "bearerAuth")
+)
+@SecurityScheme(
+        name = "bearerAuth",
+        type = SecuritySchemeType.HTTP,
+        scheme = "bearer",
+        bearerFormat = "JWT"
+)
 public class SecurityConfig {
 
     private final UserDetailsServiceImpl userDetailsService;
     private final JwtAuthenticationEntryPoint unauthorizedHandler;
     private final JwtAuthenticationFilter jwtAuthenticationFilter;
+    private final RateLimitFilter rateLimitFilter;
 
     public SecurityConfig(UserDetailsServiceImpl userDetailsService,
                           JwtAuthenticationEntryPoint unauthorizedHandler,
-                          JwtAuthenticationFilter jwtAuthenticationFilter) {
+                          JwtAuthenticationFilter jwtAuthenticationFilter,
+                          RateLimitFilter rateLimitFilter) {
         this.userDetailsService = userDetailsService;
         this.unauthorizedHandler = unauthorizedHandler;
         this.jwtAuthenticationFilter = jwtAuthenticationFilter;
+        this.rateLimitFilter = rateLimitFilter;
     }
 
     @Bean
@@ -73,13 +92,13 @@ public class SecurityConfig {
 
                         .requestMatchers("/actuator/health").permitAll()
 
-                        .requestMatchers("/events/**").permitAll() // GET público, ajustamos por método más adelante
-                        .requestMatchers("/categories/**").permitAll() // idem
+                        .requestMatchers("/events/**").permitAll()
+                        .requestMatchers("/categories/**").permitAll()
 
                         .anyRequest().authenticated()
                 )
-                .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);
-
+                .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class)
+                .addFilterBefore(rateLimitFilter, JwtAuthenticationFilter.class);
         return http.build();
     }
 }

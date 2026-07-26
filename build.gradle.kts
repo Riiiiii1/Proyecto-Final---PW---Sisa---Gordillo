@@ -43,7 +43,7 @@ dependencies {
     implementation("com.bucket4j:bucket4j_jdk17-core:8.19.0")
 
     // OpenAPI / Swagger
-    implementation("org.springdoc:springdoc-openapi-starter-webmvc-ui:2.6.0")
+    implementation("org.springdoc:springdoc-openapi-starter-webmvc-ui:3.0.3")
 
     // Actuator
     implementation("org.springframework.boot:spring-boot-starter-actuator")
