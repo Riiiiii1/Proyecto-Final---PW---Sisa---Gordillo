@@ -10,9 +10,9 @@ spring:
     baseline-on-migrate: true
 
   datasource:
-    url: jdbc:postgresql://localhost:5444/academic_events_db
-    username: postgres
-    password: manager
+    url: jdbc:postgresql://localhost:5432/academic_events_db
+    username: ups
+    password: ups123
     driver-class-name: org.postgresql.Driver
     hikari:
       maximum-pool-size: 5
@@ -25,7 +25,7 @@ spring:
       hibernate:
         format_sql: true
         jdbc:
-          time_zone: America/Guayaquil
+          time_zone: UTC
     show-sql: true
 
   data:
