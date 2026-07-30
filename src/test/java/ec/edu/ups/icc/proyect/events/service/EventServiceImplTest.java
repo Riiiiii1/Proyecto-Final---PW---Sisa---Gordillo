@@ -396,7 +396,6 @@ class EventServiceImplTest {
         dto.setRegistrationEndAt(LocalDateTime.now().plusDays(5));
         dto.setStartAt(LocalDateTime.now().plusDays(10));
         dto.setEndAt(LocalDateTime.now().plusDays(10).plusHours(4));
-        dto.setStatus(EventStatus.DRAFT);
         dto.setCategoryId(1L);
         return dto;
     }
