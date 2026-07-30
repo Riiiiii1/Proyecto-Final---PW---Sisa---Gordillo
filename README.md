@@ -843,8 +843,11 @@ Resultado:
 
 ## Despliegue
 
-> Completar esta sección una vez desplegado el proyecto.
 
-- **URL pública del backend:** *(pendiente)*
-- **URL pública de Swagger UI:** *(pendiente)*
-- **Plataforma utilizada:** Render
+- **URL pública del backend:**
+- https://proyecto-final-pw-sisa-gordillo.onrender.com
+  ![BuildSuccessful](./assets/despliegue.png)
+
+- **Plataforma utilizada:** Render Completo !
+
+  ![BuildSuccessful](./assets/despliegue2.png)
