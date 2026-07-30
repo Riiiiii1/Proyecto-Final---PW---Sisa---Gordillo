@@ -1,5 +1,6 @@
 package ec.edu.ups.icc.proyect.security.ratelimit;
 
+import ec.edu.ups.icc.proyect.security.util.JwtUtil;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
@@ -12,11 +13,12 @@ import java.io.IOException;
 
 @Component
 public class RateLimitFilter extends OncePerRequestFilter {
-
+    private final JwtUtil jwtUtil;
     private final RateLimitService rateLimitService;
     private final RateLimitProperties properties;
 
-    public RateLimitFilter(RateLimitService rateLimitService, RateLimitProperties properties) {
+    public RateLimitFilter(JwtUtil jwtUtil, RateLimitService rateLimitService, RateLimitProperties properties) {
+        this.jwtUtil = jwtUtil;
         this.rateLimitService = rateLimitService;
         this.properties = properties;
     }
@@ -83,19 +85,20 @@ public class RateLimitFilter extends OncePerRequestFilter {
         return request.getRemoteAddr();
     }
 
-    /**
-     * Simplificación: usamos el hash del token Bearer como identificador de usuario,
-     * sin decodificar el JWT dentro del filtro (evita acoplar este filtro a JwtUtil).
-     * Si no hay token, cae de vuelta a la IP.
-     */
     private String resolveAuthenticatedUserKey(HttpServletRequest request, String ip) {
         String authHeader = request.getHeader("Authorization");
         if (authHeader != null && authHeader.startsWith("Bearer ")) {
-            return String.valueOf(authHeader.hashCode());
+            String token = authHeader.substring(7);
+            try {
+                if (jwtUtil.validateAccessToken(token)) {
+                    return jwtUtil.getEmailFromToken(token);
+                }
+            } catch (Exception ignored) {
+
+            }
         }
         return ip;
     }
-
     private void respondTooManyRequests(HttpServletResponse response, long retryAfterSeconds) throws IOException {
         response.setStatus(429);
         response.setContentType(MediaType.APPLICATION_JSON_VALUE);

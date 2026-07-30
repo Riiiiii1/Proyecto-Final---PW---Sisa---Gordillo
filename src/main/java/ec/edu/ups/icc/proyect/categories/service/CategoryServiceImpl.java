@@ -71,7 +71,7 @@ public class CategoryServiceImpl implements CategoryService{
         entity.setDescription(dto.description());
 
         entity = categoryRepository.save(entity);
-        entityManager.refresh(entity);
+
 
         return categoryMapper.toResponseDto(entity);
     }

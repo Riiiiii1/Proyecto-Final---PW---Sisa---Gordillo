@@ -28,10 +28,14 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
+import java.util.Set;
 
 @Service
 public class EventServiceImpl implements EventService {
 
+    private static final Set<String> ALLOWED_SORT_FIELDS = Set.of(
+            "id", "title", "startAt", "endAt", "status", "capacity", "availableCapacity", "createdAt"
+    );
     private final EventRepository eventRepository;
     private final UserRepository userRepository;
     private final CategoryRepository categoryRepository;
@@ -252,7 +256,11 @@ public class EventServiceImpl implements EventService {
     }
 
     private Pageable createPageable(PaginationDTO pagination) {
-        String sortBy = (pagination.getSortBy() == null || pagination.getSortBy().isBlank()) ? "id" : pagination.getSortBy();
+        String sortBy = (pagination.getSortBy() == null || pagination.getSortBy().isBlank())
+                ? "id" : pagination.getSortBy();
+        if (!ALLOWED_SORT_FIELDS.contains(sortBy)) {
+            throw new BadRequestException("Campo de ordenamiento no permitido: " + sortBy);
+        }
         Sort.Direction direction = "desc".equalsIgnoreCase(pagination.getDirection()) ? Sort.Direction.DESC : Sort.Direction.ASC;
         return PageRequest.of(pagination.getPage(), pagination.getSize(), Sort.by(direction, sortBy));
     }

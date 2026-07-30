@@ -1,9 +1,11 @@
 package ec.edu.ups.icc.proyect.sessions.service;
 
 import ec.edu.ups.icc.proyect.core.exception.domain.BadRequestException;
+import ec.edu.ups.icc.proyect.core.exception.domain.ForbiddenException;
 import ec.edu.ups.icc.proyect.core.exception.domain.NotFoundException;
 import ec.edu.ups.icc.proyect.events.entity.EventEntity;
 import ec.edu.ups.icc.proyect.events.repository.EventRepository;
+import ec.edu.ups.icc.proyect.security.service.UserDetailsImpl;
 import ec.edu.ups.icc.proyect.sessions.dto.CreateSessionDTO;
 import ec.edu.ups.icc.proyect.sessions.dto.SessionResponseDTO;
 import ec.edu.ups.icc.proyect.sessions.entity.SessionEntity;
@@ -32,13 +34,21 @@ public class SessionServiceImpl implements SessionService {
 
     @Override
     @Transactional
-    public SessionResponseDTO createSession(CreateSessionDTO dto) {
+    public SessionResponseDTO createSession(CreateSessionDTO dto, UserDetailsImpl currentUser) {
         if (dto.getStartAt().isAfter(dto.getEndAt()) || dto.getStartAt().isEqual(dto.getEndAt())) {
             throw new BadRequestException("La fecha de inicio debe ser obligatoriamente anterior a la fecha de fin");
         }
 
         EventEntity event = eventRepository.findById(dto.getEventId())
                 .orElseThrow(() -> new NotFoundException("Evento no encontrado con ID: " + dto.getEventId()));
+
+        boolean isOwner = event.getOrganizer().getId().equals(currentUser.getId());
+        boolean isAdmin = currentUser.getAuthorities().stream()
+                .anyMatch(a -> a.getAuthority().equals("ROLE_ADMIN"));
+
+        if (!isOwner && !isAdmin) {
+            throw new ForbiddenException("No tienes permiso para gestionar sesiones de este evento");
+        }
 
         SessionEntity entity = sessionMapper.toEntity(dto);
         entity.setEvent(event);
@@ -62,10 +72,18 @@ public class SessionServiceImpl implements SessionService {
 
     @Override
     @Transactional
-    public void deleteSession(Long id) {
-        if (!sessionRepository.existsById(id)) {
-            throw new NotFoundException("Sesión no encontrada con ID: " + id);
+    public void deleteSession(Long id, UserDetailsImpl currentUser) {
+        SessionEntity session = sessionRepository.findById(id)
+                .orElseThrow(() -> new NotFoundException("Sesión no encontrada con ID: " + id));
+
+        boolean isOwner = session.getEvent().getOrganizer().getId().equals(currentUser.getId());
+        boolean isAdmin = currentUser.getAuthorities().stream()
+                .anyMatch(a -> a.getAuthority().equals("ROLE_ADMIN"));
+
+        if (!isOwner && !isAdmin) {
+            throw new ForbiddenException("No tienes permiso para eliminar sesiones de este evento");
         }
+
         sessionRepository.deleteById(id);
     }
 }

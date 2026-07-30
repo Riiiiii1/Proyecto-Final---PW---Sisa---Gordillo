@@ -40,9 +40,10 @@ public class AuthService {
     private final JwtUtil jwtUtil;
     private final JwtProperties jwtProperties;
 
-    @Transactional(readOnly = true)
+
+    @Transactional
     public AuthResponseDTO login(LoginRequestDTO request) {
-        User user = userRepository.findByEmail(request.email())
+        User user = userRepository.findByEmailWithRoles(request.email())
                 .orElseThrow(() -> new BadRequestException("Credenciales inválidas"));
 
         if (!passwordEncoder.matches(request.password(), user.getPasswordHash())) {
@@ -50,7 +51,7 @@ public class AuthService {
         }
 
         if (!"ACTIVE".equals(user.getStatus())) {
-            throw new BadRequestException("El usuario no está activo");
+            throw new BadRequestException("Credenciales inválidas");
         }
 
         return issueTokens(user);

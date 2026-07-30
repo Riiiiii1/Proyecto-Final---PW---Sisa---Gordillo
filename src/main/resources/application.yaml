@@ -1,39 +1,12 @@
 spring:
   application:
     name: academic-events-api
-
   profiles:
-    active: dev
-
-  flyway:
-    enabled: false
-    baseline-on-migrate: true
-
-  datasource:
-    url: jdbc:postgresql://localhost:5444/academic_events_db
-    username: postgres
-    password: manager
-    driver-class-name: org.postgresql.Driver
-    hikari:
-      maximum-pool-size: 5
-
+    active: ${SPRING_PROFILES_ACTIVE:dev}
   jpa:
     hibernate:
       ddl-auto: validate
     open-in-view: false
-    properties:
-      hibernate:
-        format_sql: true
-        jdbc:
-          time_zone: America/Guayaquil
-    show-sql: true
-
-  data:
-    redis:
-      host: leg-soup-increase-73781.db.redis.io
-      port: 19635
-      password: CMHbzNqfSdxB1n9FavJECqKZj3qxPjwb
-
   jackson:
     time-zone: UTC
 
@@ -47,15 +20,11 @@ app:
     business: America/Guayaquil
 
 jwt:
-  secret: ${JWT_SECRET:cambia-este-secreto-en-produccion-por-uno-largo-y-seguro-de-al-menos-256-bits}
   expiration: ${JWT_ACCESS_EXPIRATION:900000}
   refresh-expiration: ${JWT_REFRESH_EXPIRATION:604800000}
   issuer: academic-events-api
   token-prefix: "Bearer "
   header-name: "Authorization"
-
-cors:
-  allowed-origins: ${ALLOWED_ORIGINS:http://localhost:5173,http://localhost:3000}
 
 springdoc:
   swagger-ui:

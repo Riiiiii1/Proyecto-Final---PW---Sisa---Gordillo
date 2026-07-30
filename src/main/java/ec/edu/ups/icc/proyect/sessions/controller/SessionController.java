@@ -1,5 +1,6 @@
 package ec.edu.ups.icc.proyect.sessions.controller;
 
+import ec.edu.ups.icc.proyect.security.service.UserDetailsImpl;
 import ec.edu.ups.icc.proyect.sessions.dto.CreateSessionDTO;
 import ec.edu.ups.icc.proyect.sessions.dto.SessionResponseDTO;
 import ec.edu.ups.icc.proyect.sessions.service.SessionService;
@@ -7,6 +8,7 @@ import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -23,11 +25,12 @@ public class SessionController {
 
     @PostMapping
     @PreAuthorize("hasAnyRole('ORGANIZER', 'ADMIN')")
-    public ResponseEntity<SessionResponseDTO> createSession(@Valid @RequestBody CreateSessionDTO dto) {
-        SessionResponseDTO response = sessionService.createSession(dto);
+    public ResponseEntity<SessionResponseDTO> createSession(
+            @Valid @RequestBody CreateSessionDTO dto,
+            @AuthenticationPrincipal UserDetailsImpl currentUser) {
+        SessionResponseDTO response = sessionService.createSession(dto, currentUser);
         return new ResponseEntity<>(response, HttpStatus.CREATED);
     }
-
     @GetMapping("/event/{eventId}")
     public ResponseEntity<List<SessionResponseDTO>> getSessionsByEventId(@PathVariable Long eventId) {
         List<SessionResponseDTO> sessions = sessionService.getSessionsByEventId(eventId);
@@ -37,8 +40,10 @@ public class SessionController {
 
     @DeleteMapping("/{id}")
     @PreAuthorize("hasAnyRole('ORGANIZER', 'ADMIN')")
-    public ResponseEntity<Void> deleteSession(@PathVariable Long id) {
-        sessionService.deleteSession(id);
+    public ResponseEntity<Void> deleteSession(
+            @PathVariable Long id,
+            @AuthenticationPrincipal UserDetailsImpl currentUser) {
+        sessionService.deleteSession(id, currentUser);
         return ResponseEntity.noContent().build();
     }
 }

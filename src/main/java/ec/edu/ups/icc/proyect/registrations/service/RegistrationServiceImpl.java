@@ -24,7 +24,9 @@ import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDateTime;
 import java.time.OffsetDateTime;
+import java.time.ZoneId;
 import java.util.Set;
 
 @Service
@@ -33,6 +35,8 @@ public class RegistrationServiceImpl implements RegistrationService {
     private static final Set<String> ALLOWED_SORT_FIELDS = Set.of(
             "id", "status", "registeredAt", "statusUpdatedAt"
     );
+
+    private static final ZoneId BUSINESS_ZONE = ZoneId.of("America/Guayaquil");
 
     private final RegistrationRepository registrationRepository;
     private final EventRepository eventRepository;
@@ -213,8 +217,8 @@ public class RegistrationServiceImpl implements RegistrationService {
         );
     }
 
-    private OffsetDateTime toOffset(java.time.LocalDateTime localDateTime) {
-        return localDateTime.atZone(java.time.ZoneId.systemDefault()).toOffsetDateTime();
+    private OffsetDateTime toOffset(LocalDateTime localDateTime) {
+        return localDateTime.atZone(BUSINESS_ZONE).toOffsetDateTime();
     }
 
     private Pageable createPageable(PaginationDTO pagination) {

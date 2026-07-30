@@ -9,7 +9,6 @@ import java.util.TimeZone;
 public class ProyectoFinalSisaGordilloApplication {
 
     public static void main(String[] args) {
-        TimeZone.setDefault(TimeZone.getTimeZone("America/Guayaquil"));
         SpringApplication.run(ProyectoFinalSisaGordilloApplication.class, args);
     }
 
