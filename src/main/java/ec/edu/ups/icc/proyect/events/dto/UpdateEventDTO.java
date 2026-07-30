@@ -1,8 +1,10 @@
 package ec.edu.ups.icc.proyect.events.dto;
 
 import ec.edu.ups.icc.proyect.events.enums.EventModality;
-import ec.edu.ups.icc.proyect.events.enums.EventStatus;
-import jakarta.validation.constraints.*;
+import jakarta.validation.constraints.Min;
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.Size;
 import java.time.LocalDateTime;
 
 public class UpdateEventDTO {
@@ -17,7 +19,10 @@ public class UpdateEventDTO {
     @NotNull(message = "La modalidad es obligatoria")
     private EventModality modality;
 
+    @Size(max = 200, message = "La ubicación no debe superar los 200 caracteres")
     private String location;
+
+    @Size(max = 500, message = "La URL no debe superar los 500 caracteres")
     private String virtualUrl;
 
     @NotNull(message = "El cupo es obligatorio")
@@ -36,10 +41,8 @@ public class UpdateEventDTO {
     @NotNull(message = "La fecha de fin del evento es obligatoria")
     private LocalDateTime endAt;
 
-    @NotNull(message = "El estado es obligatorio")
-    private EventStatus status;
-
     @NotNull(message = "La categoría es obligatoria")
+    @Min(value = 1, message = "El ID de la categoría no es válido")
     private Long categoryId;
 
     public UpdateEventDTO() {}
@@ -64,8 +67,6 @@ public class UpdateEventDTO {
     public void setStartAt(LocalDateTime startAt) { this.startAt = startAt; }
     public LocalDateTime getEndAt() { return endAt; }
     public void setEndAt(LocalDateTime endAt) { this.endAt = endAt; }
-    public EventStatus getStatus() { return status; }
-    public void setStatus(EventStatus status) { this.status = status; }
     public Long getCategoryId() { return categoryId; }
     public void setCategoryId(Long categoryId) { this.categoryId = categoryId; }
 }

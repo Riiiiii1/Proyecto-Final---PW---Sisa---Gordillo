@@ -42,7 +42,7 @@ public class RegistrationEntity {
     @Builder.Default
     private RegistrationStatus status = RegistrationStatus.PENDING;
 
-    @Column(name = "registered_at", nullable = false, insertable = false, updatable = false)
+    @Column(name = "registered_at", nullable = false, updatable = false)
     private OffsetDateTime registeredAt;
 
     @Column(name = "status_updated_at", nullable = false)
@@ -63,6 +63,7 @@ public class RegistrationEntity {
         if (this.registrationCode == null) {
             this.registrationCode = UUID.randomUUID();
         }
+        this.registeredAt = OffsetDateTime.now();
         this.statusUpdatedAt = OffsetDateTime.now();
     }
 }

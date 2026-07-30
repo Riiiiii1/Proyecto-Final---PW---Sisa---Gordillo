@@ -113,7 +113,6 @@ public class EventServiceImpl implements EventService {
         event.setRegistrationEndAt(dto.getRegistrationEndAt());
         event.setStartAt(dto.getStartAt());
         event.setEndAt(dto.getEndAt());
-        event.setStatus(dto.getStatus());
         event.setCategory(category);
 
         EventEntity updatedEvent = eventRepository.save(event);
