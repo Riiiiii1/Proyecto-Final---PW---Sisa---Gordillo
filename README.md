@@ -103,6 +103,22 @@ docker exec -it postgres-proyecto psql -U ups -d academic_events_db -c "\dt"
 
 ---
 
+## Arquitectura del Sistema
+
+**Descripción:** El siguiente diagrama ilustra la arquitectura general de la API REST, diseñada bajo un enfoque de **monolito modular**.
+
+La solución integra las siguientes tecnologías:
+
+ - **Spring Boot** como orquestador central de la aplicación.
+ - **Spring Security** junto con **JWT** para la autenticación, autorización y gestión de roles.
+ - **Redis** para almacenamiento temporal y control de tráfico mediante **Rate Limiting**.
+ - **PostgreSQL** como sistema de persistencia relacional.
+ - **Docker** para la contenerización y despliegue de toda la infraestructura.
+
+![Arquitectura del Sistema](./assets/999-Arquitectura.png)
+
+---
+
 ## Modelo Entidad-Relación
 
 **Descripción:** Diagrama entidad-relación generado a partir del script de base de datos.
